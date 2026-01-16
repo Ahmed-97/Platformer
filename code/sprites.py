@@ -121,9 +121,10 @@ class Worm(Enemy):
 
 
 class Player(AnimatedSprite):
-    def __init__(self, pos, groups, collision_sprites, frames):
+    def __init__(self, pos, groups, collision_sprites, frames, create_bullet):
         super().__init__(frames, pos, groups)
         self.flip = False
+        self.create_bullet = create_bullet
 
         # movement & collision
         self.direction = pygame.Vector2()
@@ -132,11 +133,18 @@ class Player(AnimatedSprite):
         self.gravity = 50
         self.on_floor = False
 
+        # timer
+        self.shoot_timer = Timer(300)
+
     def input(self):
         keys = pygame.key.get_pressed()
         self.direction.x = int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT])
         if keys[pygame.K_SPACE] and self.on_floor:
-            self.direction.y = -20
+            self.direction.y = -24
+
+        if keys[pygame.K_s] and not self.shoot_timer:
+            self.create_bullet(self.rect.center, -1 if self.flip else 1)
+            self.shoot_timer.activate()
 
     def move(self, dt):
         # horizontal:
@@ -180,6 +188,7 @@ class Player(AnimatedSprite):
         self.image = pygame.transform.flip(self.image, self.flip, False)
 
     def update(self, dt):
+        self.shoot_timer.update()
         self.check_floor()
         self.input()
         self.move(dt)
